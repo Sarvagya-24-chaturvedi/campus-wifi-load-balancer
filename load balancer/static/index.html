@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Campus Load Balancer — Operations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/ui/style.css?v=2" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
+    <script src="/ui/app.js?v=2" defer></script>
+  </head>
+  <body>
+    <div id="ddos-banner" class="ddos-banner" hidden aria-live="assertive">
+      <span class="ddos-banner-icon">⚠️</span>
+      <span class="ddos-banner-text">CRITICAL: SUSTAINED L7 DDOS ATTACK IN PROGRESS</span>
+    </div>
+
+    <div class="app">
+      <header class="top-bar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <div>
+            <h1>Campus Wi‑Fi Load Balancer</h1>
+            <p class="subtitle">Simulation control plane · greedy policies · live telemetry</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <label class="control-tile">
+            <span class="control-label">Algorithm</span>
+            <select id="algorithm-select" class="input-dark"></select>
+            <span class="pill-active" id="active-algorithm-pill">—</span>
+          </label>
+          <button type="button" id="apply-algorithm" class="btn btn-ghost">Apply</button>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <label class="toggle-pill">
+            <input type="checkbox" id="auto-generate-traffic" checked />
+            <span>Auto-generate traffic</span>
+          </label>
+          <select id="traffic-rate-select" class="input-dark">
+            <option value="low">Low (1-3 req/s)</option>
+            <option value="medium" selected>Medium (2-5 req/s)</option>
+            <option value="high">High (8-15 req/s)</option>
+            <option value="stress">Stress (20-40 req/s)</option>
+          </select>
+        </div>
+        <div class="toolbar-group security-toolbar">
+          <button type="button" id="btn-ddos-toggle" class="btn btn-ddos" data-active="false">
+            Start DDoS attack
+          </button>
+          <label class="toggle-pill waf-pill">
+            <input type="checkbox" id="waf-toggle" />
+            <span>WAF / IDS</span>
+          </label>
+        </div>
+        <div class="toolbar-group actions-inline">
+          <button type="button" id="btn-generate" class="btn btn-secondary">Generate</button>
+          <button type="button" id="btn-assign" class="btn btn-primary">Assign</button>
+          <button type="button" id="btn-burst" class="btn btn-secondary">Burst ×24</button>
+        </div>
+      </div>
+
+      <section class="kpi-row">
+        <article class="kpi-card">
+          <h3>Throughput</h3>
+          <p id="kpi-throughput" class="kpi-value">0 rps</p>
+        </article>
+        <article class="kpi-card">
+          <h3>Avg latency</h3>
+          <p id="kpi-latency" class="kpi-value">0 ms</p>
+        </article>
+        <article class="kpi-card">
+          <h3>Fairness (Jain)</h3>
+          <p id="kpi-fairness" class="kpi-value">1.000</p>
+        </article>
+        <article class="kpi-card">
+          <h3>Assignments</h3>
+          <p id="kpi-assignments" class="kpi-value">0</p>
+        </article>
+        <article class="kpi-card kpi-card-alert">
+          <h3>Blocked threats</h3>
+          <p id="kpi-blocked" class="kpi-value">0</p>
+        </article>
+      </section>
+
+      <div class="main-stage">
+        <div class="main-grid">
+          <section class="panel panel-servers">
+            <div class="panel-title">
+              <h2>Access points</h2>
+              <p class="panel-desc">Weights &amp; failure simulation</p>
+            </div>
+            <div id="server-grid" class="server-grid"></div>
+          </section>
+
+          <section class="panel panel-side">
+            <div class="panel-title">
+              <h2>Request preview</h2>
+            </div>
+            <pre id="request-preview" class="code-block">{}</pre>
+            <div class="panel-title panel-title-spaced">
+              <h2>Recent assignments</h2>
+            </div>
+            <div id="assignment-log" class="log"></div>
+
+            <div class="panel-title panel-title-spaced">
+              <h2>Custom Request Tool</h2>
+            </div>
+            
+            <div class="ip-mode-toggles">
+              <label class="toggle-pill">
+                <input type="radio" name="ip_mode" value="random" checked />
+                <span>Normal User (Random IP)</span>
+              </label>
+              <label class="toggle-pill">
+                <input type="radio" name="ip_mode" value="fixed" />
+                <span>Attack Source (Fixed IP)</span>
+              </label>
+            </div>
+
+            <div class="custom-request-form">
+              <input type="text" id="custom-ip" class="input-dark" value="Auto-generated" placeholder="IP Address" disabled />
+              <select id="custom-user" class="input-dark">
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="lab">Lab</option>
+                <option value="malicious_bot">Malicious Bot</option>
+              </select>
+              <button type="button" id="btn-send-custom" class="btn btn-primary">Send Custom</button>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel panel-charts">
+          <div class="panel-title">
+            <h2>Telemetry</h2>
+            <p class="panel-desc">Throughput &amp; latency · Y-axis from zero</p>
+          </div>
+          <div class="charts-grid charts-grid--compact">
+            <div class="chart-wrap chart-wrap--line">
+              <canvas id="chart-throughput"></canvas>
+            </div>
+            <div class="chart-wrap chart-wrap--line">
+              <canvas id="chart-latency"></canvas>
+            </div>
+            <div class="chart-wrap chart-wrap--util">
+              <canvas id="chart-util"></canvas>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <code>/metrics</code>
+        <code>/algorithm</code>
+        <code>/waf</code>
+        <code>/ddos</code>
+        ·
+        <a href="/docs" target="_blank" rel="noreferrer">API docs</a>
+      </footer>
+    </div>
+  </body>
+</html>
