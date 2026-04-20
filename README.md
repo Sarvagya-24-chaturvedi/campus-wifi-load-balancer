@@ -110,16 +110,6 @@ GET /metrics (summary):
   "active_algorithm": "round_robin"
 }
 ```
-
-## Screenshots
-
-The repository does not ship binary images (they vary by theme/resolution). Capture your own after launching the UI:
-
-1. Start `uvicorn` and browse to `http://127.0.0.1:8000/`.
-2. Enable **Auto traffic** to animate charts.
-3. Toggle **Simulate failure** on a busy AP, then watch fairness/throughput react.
-4. Save PNGs from your browser dev tools or OS capture for lab reports.
-
 ## Extending the project
 
 - **Admission control:** reject low-priority students when utilization > threshold (add policy layer before `assign_request`).
