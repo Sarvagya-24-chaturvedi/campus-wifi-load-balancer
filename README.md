@@ -117,7 +117,3 @@ GET /metrics (summary):
 - **Trace replay:** replace `random_request()` with CSV-driven arrivals for reproducible experiments.
 - **WebSockets:** push `/metrics` updates instead of polling for denser timelines.
 - **Testing:** add `pytest` suites that freeze RNG seeds and assert deterministic heap choices.
-
-## Academic integrity note
-
-Reuse the explanations of complexity and fairness in your own words for coursework submissions, and cite this README if your institution requires source attribution.
